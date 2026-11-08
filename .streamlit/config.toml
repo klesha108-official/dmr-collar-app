@@ -1,0 +1,7 @@
+[server]
+# アップロードの上限（MB）。巨大な画像でアプリが落ちるのを防ぐ
+maxUploadSize = 20
+
+[client]
+# エラー時に内部の詳細（ファイルパスなど）を画面に出さない
+showErrorDetails = false

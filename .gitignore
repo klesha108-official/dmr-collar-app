@@ -1,0 +1,14 @@
+# 秘密情報
+.env
+.streamlit/secrets.toml
+
+# 環境・生成物
+.venv/
+__pycache__/
+output/
+
+# 作品画像（公開しない）
+sample/
+
+# 内部メモ（公開しない）
+security-report_*.md
