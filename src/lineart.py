@@ -18,11 +18,15 @@ def decode_image(data: bytes, max_side=2000):
 def extract_lines(bgr, sensitivity=0.90, gain=2.5):
     """紙の灰色・影を除去し、線の濃さ(0=紙, 1=線)を返す。
 
-    背景の明るさをメディアンぼかしで推定して割り算する（照明ムラ補正）。
+    背景（紙）の明るさを推定して割り算する（照明ムラ補正）。
     """
     gray = cv2.cvtColor(bgr, cv2.COLOR_BGR2GRAY)
     k = max(31, (min(gray.shape) // 20) | 1)
-    bg = cv2.medianBlur(gray, k).astype(np.float32)
+    # 髪など線が密集した所では、ただのメディアンだと紙を暗く見積もり、線が白飛びする。
+    # 先に近くの明るい所（線のすき間の紙）を拾ってから、メディアンで平らにする。
+    r = max(7, (min(gray.shape) // 60) | 1)
+    paper = cv2.dilate(gray, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (r, r)))
+    bg = np.maximum(cv2.medianBlur(paper, k), cv2.medianBlur(gray, k)).astype(np.float32)
     ratio = np.clip(gray.astype(np.float32) / np.maximum(bg, 1), 0, 1.2)
     darkness = np.clip((sensitivity - ratio) / sensitivity, 0, 1)
     return np.clip(darkness * gain, 0, 1)

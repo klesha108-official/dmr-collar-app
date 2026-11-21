@@ -58,7 +58,7 @@ orig_data = up.getvalue()
 
 # =============== タブ1 ===============
 with tab1:
-    sensitivity = st.slider("線の拾いやすさ（薄い線が消えるときは小さく）", 0.6, 0.98, 0.90, 0.01)
+    sensitivity = st.slider("線の拾いやすさ（薄い線が消えるときは大きく）", 0.6, 0.98, 0.90, 0.01)
     clean = prepare(orig_data, sensitivity)
     c1, c2 = st.columns([1, 1])
     with c1:
