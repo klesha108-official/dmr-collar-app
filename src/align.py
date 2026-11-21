@@ -5,7 +5,7 @@ import numpy as np
 from lineart import extract_lines
 
 
-def _ai_line_map(ai_bgr):
+def ai_line_map(ai_bgr):
     """AI 着色画の「線らしさ」。色のついた面を線と誤認しないよう彩度で割り引く。"""
     hsv = cv2.cvtColor(ai_bgr, cv2.COLOR_BGR2HSV)
     gray = cv2.cvtColor(ai_bgr, cv2.COLOR_BGR2GRAY)
@@ -25,7 +25,7 @@ def align_lines(orig_bgr, ai_bgr, sensitivity=0.90):
     d_o = cv2.resize(d_orig, (w, h), interpolation=cv2.INTER_AREA)
     aspect_diff = abs((orig_bgr.shape[1] / orig_bgr.shape[0]) / (w / h) - 1)
 
-    a = cv2.GaussianBlur(_ai_line_map(ai_bgr), (0, 0), 3).astype(np.float32)
+    a = cv2.GaussianBlur(ai_line_map(ai_bgr), (0, 0), 3).astype(np.float32)
     b = cv2.GaussianBlur(d_o, (0, 0), 3).astype(np.float32)
 
     warp = np.eye(3, dtype=np.float32)

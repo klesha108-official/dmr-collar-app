@@ -3,6 +3,8 @@ import cv2
 import numpy as np
 from scipy import ndimage as ndi
 
+from align import ai_line_map
+
 PAPERS = {"そのまま": None, "紙白": (250, 249, 246), "クリーム": (246, 240, 226),
           "薄いグラデーション": "gradient"}
 
@@ -52,7 +54,19 @@ def finish(ai_rgb, aligned_dark, *, saturation=1.0, brightness=0.0, contrast=1.0
     hsv = cv2.cvtColor(img, cv2.COLOR_RGB2HSV).astype(np.float32)
     hsv[..., 1] = np.clip(hsv[..., 1] * saturation, 0, 255)
     out = cv2.cvtColor(hsv.astype(np.uint8), cv2.COLOR_HSV2RGB).astype(np.float32)
-    out = (out - 128) * contrast + 128 + brightness * 255
+    out = (out - 128) * contrast + 128
+    if brightness > 0:
+        # 明るくするときは、線の部分を守る（線まで明るくすると灰色に薄まるため）。
+        # 守る場所 = 着色画に描かれた線 ＋ 重ねる元の線画
+        protect = ai_line_map(np.ascontiguousarray(ai_rgb[..., ::-1]))
+        if aligned_dark is not None:
+            protect = np.maximum(protect, aligned_dark)
+        # 線のふちが急に変わらないよう、少し太らせてぼかす
+        protect = np.clip(protect * 1.5, 0, 1)
+        protect = cv2.GaussianBlur(cv2.dilate(protect, np.ones((3, 3), np.uint8)), (0, 0), 1)
+        out += (brightness * 255 * (1 - protect))[..., None]
+    else:
+        out += brightness * 255
     out[..., 0] += warmth * 14
     out[..., 2] -= warmth * 14
     out = np.clip(out, 0, 255)
